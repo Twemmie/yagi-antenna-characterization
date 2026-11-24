@@ -64,9 +64,7 @@ For these reasons, the predicted gain and beamwidth must be treated as **design 
 
 The original design screenshot documents the element positions, lengths, estimated performance, and software warnings.
 
-**Planned image location:** `hardware/images/original-yagi-design.jpg`
-
-_The screenshot will be linked here once its image file has been uploaded to the repository._
+**Uploaded design reference:** [Original 440 MHz Yagi design screenshot](images/original-yagi-design.jpg). This is supplied reference material, not an independently produced antenna design.
 
 ## Design Versus Measurements
 
