@@ -28,7 +28,7 @@ Both faces of the assembled antenna are photographed, revealing the fasteners, f
 
 **Additional floor view:** [`images/yagi-assembled-floor.jpg`](images/yagi-assembled-floor.jpg) — source photograph: `IMG_8736.JPG`.
 
-> Image links above refer to the intended image paths. The image files need to be uploaded separately before these links will open in GitHub.
+> The linked photographs have been uploaded under `hardware/images/`. They document visible construction features; they do not establish RF performance.
 
 ## 3. Driven-element feed area
 
@@ -67,8 +67,7 @@ The initial working software spectrum analyzer used a **425 MHz center frequency
 
 - Confirm the exact feed wiring and any matching arrangement from construction details or a schematic.
 - Verify coax type and assembly dimensions where required.
-- Upload these construction photographs to `hardware/images/`.
-- Record VNA results and controlled directional measurements in `experiments/` and `results/` rather than treating construction photographs as RF performance measurements.
+- Record legible VNA results and controlled directional measurements in `experiments/` and `results/` rather than treating construction photographs as RF performance measurements.
 
 ## Design attribution
 
