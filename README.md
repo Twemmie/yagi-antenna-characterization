@@ -22,11 +22,11 @@ The project aims to characterize antenna impedance matching and the **relative d
 
 ## Repository contents
 
-- [`theory/`](theory/) — six completed blocks of RF/DSP theory notes (to be transferred from handwritten notes)
-- [`hardware/`](hardware/) — original antenna design, attribution, construction images, and feed details
+- [`theory/`](theory/) — six uploaded PDF chapters of handwritten RF/DSP theory notes
+- [`hardware/`](hardware/) — supplied antenna design, attribution, uploaded construction images, and feed details
 - [`src/yagi_sdr_characterization.py`](src/yagi_sdr_characterization.py) — working PlutoSDR IQ capture, FFT, Welch PSD, band-power estimation, guided angular sweep, and preliminary polar plotting
-- [`experiments/`](experiments/) — repeatable setups, procedures, verified measurements, and interpretations
-- [`results/`](results/) — measurement tables, screenshots, and plots
+- [`experiments/`](experiments/) — controlled-test protocol, planned setup, and future verified measurements
+- [`results/`](results/) — planned numeric measurement tables, verified result plots, and instrument evidence
 
 ## Equipment and environment
 
@@ -46,9 +46,9 @@ The current single-file Python implementation uses PyADI-IIO, NumPy, SciPy, and 
 4. Prompt the operator at 30° increments, capture a fresh IQ buffer at each of 12 unique orientations (0°–330°), and store a band-power estimate.
 5. Normalize these measurements and generate a **software-test** polar visualization, reusing the 0° point at 360° to close the curve.
 
-The script saves FFT, PSD, and angular-sweep PNGs to `results/plots/` when run locally. These plot exports are not proof of physical antenna directivity. The angular-sweep workflow has been exercised, but a controlled, stable RF reference has **not** yet been used to validate its radiation pattern. The current polar plot shifts the relative-dB values to nonnegative radii for visualization, which can make small variations appear dramatic.
+The script saves FFT, PSD, and angular-sweep PNGs to `results/plots/` when run locally; these locally generated files are not necessarily committed to GitHub. These plot exports are not proof of physical antenna directivity. The angular-sweep workflow has been exercised, but a controlled, stable RF reference has **not** yet been used to validate its radiation pattern. The current polar plot shifts the relative-dB values to nonnegative radii for visualization, which can make small variations appear dramatic.
 
-The current script is designed for incremental experimentation in Spyder. Receiver settings and the test band are hardcoded; measurement values are not yet exported to CSV, and the analysis steps have not yet been refactored into reusable functions. These are planned reproducibility and maintainability improvements, not completed features.
+The current script is designed for incremental experimentation in Spyder. See [`src/README.md`](src/README.md) for run instructions and [`experiments/controlled-angular-sweep.md`](experiments/controlled-angular-sweep.md) for the future controlled-test protocol. Receiver settings and the test band are hardcoded; measurement values are not yet exported to CSV, and the analysis steps have not yet been refactored into reusable functions. These are planned reproducibility and maintainability improvements, not completed features.
 
 ## Experimental approach
 
