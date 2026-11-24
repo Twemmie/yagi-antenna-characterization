@@ -5,9 +5,9 @@ Hardware documentation for the constructed **six-element tape-measure Yagi-Uda a
 - [Antenna design](antenna-design.md) — supplied 440 MHz design specifications, original dimensions, estimated performance, warnings, and attribution.
 - [Build process](build-process.md) — photographic record of the assembled antenna, feed region, cable routing, and initial PlutoSDR setup.
 
-## Image files to upload
+## Uploaded construction and reference images
 
-Place the source photographs under `hardware/images/` using the names referenced in the build-process document:
+The following reference and build photographs are uploaded under `hardware/images/`:
 
 | Target image path | Source photograph |
 |---|---|
@@ -19,6 +19,6 @@ Place the source photographs under `hardware/images/` using the names referenced
 | `images/plutosdr-connection.jpg` | `IMG_9017.JPG` |
 | `images/original-yagi-design.jpg` | Original 440 MHz design sheet |
 
-These are **planned target names**; the binary photos are not yet uploaded via the GitHub connector.
+All seven images listed above are present in the repository. They document construction and equipment, not calibrated antenna performance.
 
 The antenna geometry is a supplied design, while construction, radio setup, and experimental characterization are documented as separate project contributions.
