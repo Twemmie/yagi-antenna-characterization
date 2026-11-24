@@ -1,0 +1,21 @@
+# Python local build/cache files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Virtual environments and local IDE settings
+.venv/
+venv/
+pluto-en/
+.spyproject/
+
+# Generated local plots and measurement exports (commit selected verified results intentionally)
+results/plots/*.png
+results/plots/*.jpg
+results/plots/*.jpeg
+results/*.csv
+
+# Operating-system temporary files
+.DS_Store
+Thumbs.db
