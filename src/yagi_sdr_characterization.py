@@ -1,14 +1,15 @@
 # ============================================================
-# 01 - PlutoSDR Spectrum and PSD Analyzer
+# Yagi SDR Characterization - Spectrum, PSD, and Angular Sweep
 # ============================================================
 # Purpose:
 # Capture complex IQ samples from an ADALM-Pluto SDR and
-# analyze them using the FFT and Welch's PSD estimation.
+# analyze them with FFT, Welch PSD, and an interactive angular-sweep workflow.
 #
 # Outputs:
 # 1. Received RF spectrum (FFT magnitude)
 # 2. Power Spectral Density (Welch method)
-# 3. PNG figures saved to results/plots/
+# 3. Uncalibrated band-power estimates and software-test angular plot
+# 4. PNG figures saved to results/plots/
 #
 # Note:
 # Measurements use uncalibrated IQ sample values.
@@ -31,7 +32,7 @@ def windows_find_library(name):
         return "ucrtbase"
     return original_find_library(name)
 
-# Restore the original library lookup after importing pylibiio.
+# Apply the Windows compatibility lookup override before importing pylibiio.
 ctypes.util.find_library = windows_find_library
 
 import adi
@@ -358,7 +359,7 @@ relative_power_db = power_array - np.max(power_array)
 print("Relative power measurements (dB):", relative_power_db)
 
 # %%
-# 13. Polar Radiation Pattern Visualization
+# 13. Preliminary Angular Sweep Polar Visualization (Software Test)
 
 # Convert antenna angles from degrees to radians
 angles_rad = np.deg2rad(angles)
