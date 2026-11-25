@@ -1,24 +1,22 @@
-# Hardware
+# Hardware, construction and indoor test setup
 
-Hardware documentation for the constructed **six-element tape-measure Yagi-Uda antenna**.
+The project uses a **six-element tape-measure Yagi** on an approximately **66 cm nonmetallic boom**, connected to an **ADALM-Pluto SDR** through coax and a BNC-to-SMA adapter. The separate reference transmitter is an **Arduino UNO R4 WiFi + CC1101**.
 
-- [Antenna design](antenna-design.md) — supplied 440 MHz design specifications, original dimensions, estimated performance, warnings, and attribution.
-- [Build process](build-process.md) — photographic record of the assembled antenna, feed region, cable routing, and initial PlutoSDR setup.
+![Constructed antenna](images/yagi-assembled-floor.jpg)
 
-## Uploaded construction and reference images
+See [original 440 MHz antenna geometry and design attribution](antenna-design.md) and the [photographic build record](build-process.md). Predicted gain/beamwidth on the original design sheet are **not experimental results**.
 
-The following reference and build photographs are uploaded under `hardware/images/`:
+## Original construction imagery
 
-| Target image path | Source photograph |
-|---|---|
-| `images/yagi-front-view.jpg` | `IMG_9417.JPG` |
-| `images/yagi-reverse-view.jpg` | `IMG_9416.JPG` |
-| `images/yagi-assembled-upright.jpg` | `IMG_8717.JPG` |
-| `images/yagi-assembled-floor.jpg` | `IMG_8736.JPG` |
-| `images/driven-element-feed.jpg` | `IMG_8779.JPG` |
-| `images/plutosdr-connection.jpg` | `IMG_9017.JPG` |
-| `images/original-yagi-design.jpg` | Original 440 MHz design sheet |
+- [Front](images/yagi-front-view.jpg), [reverse](images/yagi-reverse-view.jpg), [upright](images/yagi-assembled-upright.jpg), [floor](images/yagi-assembled-floor.jpg).
+- [Driven-element feed](images/driven-element-feed.jpg), [PlutoSDR connection](images/plutosdr-connection.jpg), [supplied design screenshot](images/original-yagi-design.jpg).
 
-All seven images listed above are present in the repository. They document construction and equipment, not calibrated antenna performance.
+## November 25 indoor measurement photography
 
-The antenna geometry is a supplied design, while construction, radio setup, and experimental characterization are documented as separate project contributions.
+![Manual angular measurement setup](photos/IMG_9507.jpeg)
+
+The [`photos/`](photos/) folder preserves additional Arduino/CC1101 jumper wiring, antenna/transmitter arrangements, and the marked circular floor reference (including `IMG_9502(1).jpeg` and `IMG_9507.jpeg`). The antenna was **hand-positioned**, not mounted on a precision rotary fixture. Furniture, floor reflection, a nearby Christmas tree, coax routing and operator proximity could change measured power; no single cause has been proven.
+
+**Electrical caution:** Arduino UNO R4 WiFi outputs 5-V logic; CC1101 digital I/O uses 3.3-V levels. Verify correct power supply and safe level translation rather than assuming electrically compatible interfaces because SPI worked.
+
+[Reference-transmitter firmware](../firmware/cc1101_reference_transmitter/README.md)

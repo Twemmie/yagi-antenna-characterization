@@ -1,6 +1,6 @@
-# Python dependencies for the Yagi/PlutoSDR characterization script.
-# Package versions are not pinned; test compatibility with your Python/pylibiio installation.
+# SDR and offline Yagi measurement analysis dependencies.
 numpy
 scipy
 matplotlib
+pandas
 pyadi-iio

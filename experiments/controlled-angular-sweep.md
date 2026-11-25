@@ -1,51 +1,37 @@
-# Controlled Angular Sweep — Measurement Protocol
+# Indoor Yagi angular-sweep protocol and record
 
-**Status:** Planned protocol; **not yet completed as a validated measurement**. The existing polar plot is a software test.
+**Experiment performed:** November 25, 2026. **Status:** Preliminary, manual indoor measurements.
 
-## Objective
+## Apparatus and settings
 
-Measure the six-element Yagi's **relative directional received-power response** with a known, stable RF reference and fixed PlutoSDR receiver settings. Do not infer absolute antenna gain or measured beamwidth from the current uncontrolled captures.
+- Six-element tape-measure Yagi built from a supplied **440 MHz** antenna design.
+- Fixed Arduino UNO R4 WiFi + CC1101 reference transmitter; **434.0 MHz programmed**, ~**433.921 MHz observed** on PlutoSDR.
+- PlutoSDR at **434.2 MHz LO**, ~**3 MSPS**, **2 MHz** receiver bandwidth, manual **20 dB RX gain**.
+- **16,384** complex IQ samples per acquisition; **2,048** samples per Welch segment; PSD integrated over **433.87–433.97 MHz**.
+- A floor-marked reference circle with **0° defined toward the CC1101**; manually held Yagi centered above the circle and rotated in 30° steps.
+- Indoor environment includes furniture, floor/walls, and a Christmas tree; the operator, coax, height and positioning were not perfectly controlled.
 
-## Apparatus
+## Method used
 
-- Constructed six-element Yagi antenna (original design reference: **440 MHz**).
-- ADALM-Pluto SDR with fixed manual receiver gain, known IQ sample rate, RF bandwidth and local oscillator.
-- Known stable, appropriately authorized transmitter or signal generator, matched to the selected legal operating frequency and receiver bandwidth.
-- Fixed transmitter antenna, measuring tape, angle reference/rotation fixture, cables and computer running `src/yagi_sdr_characterization.py`.
+1. Verify receiver connection, FFT peak in the intended CC1101 region, and repeatability of IQ/PSD processing.
+2. Compare signal ON/OFF with unchanged settings and record fixed-orientation controls.
+3. At each angle, physically rotate the receiving antenna, press Enter in the Python measurement loop and capture a fresh 16,384-sample IQ buffer.
+4. Compute two-sided Welch PSD, integrate linear sample PSD in the target band and apply `10 log10` to obtain **uncalibrated logarithmic received sample power**.
+5. Collect the available angle series: one 11-position sweep, four 12-position sweeps, plus two supplementary half-sweeps.
+6. Normalize each sweep to its own **0°** reading and compute the cross-sweep mean, median and sample standard deviation.
 
-## Preparation
+## Results and limitations
 
-1. Record the test date, location/environment, transmitter configuration, frequency, antenna heights, separation, polarization, cable/adapter details, and measured Yagi orientation convention.
-2. Confirm that the Yagi-connected PlutoSDR can receive a **distinct, identifiable signal**, separated from the SDR's LO/DC artifact and within the usable receiver passband.
-3. Use a selected integration band that captures the intended signal without crossing the receiver DC spike or poorly behaved filter edges.
-4. Keep transmitter power and position, receiver gain, sampling rate, antenna polarization and geometry fixed throughout the sweep.
-5. Prefer an unobstructed, controlled test area; document nearby reflecting objects and limitations. A far-field setup is preferable where practical, but do not assert a far-field condition without evaluating it.
+- **59 measurements** across five full sweeps. Sweep 1's missing 330° remains missing.
+- Within-run 0°–150° spans range **0.015–0.068 dB**.
+- The 270° between-sweep sample SD is **7.31 dB**, and the minimum moves between 180°, 210°, 240° and 270° across sweeps.
+- Data support *indoor relative received-power variations*, **not** independently calibrated gain, free-space beamwidth, stable nulls, S11, or front-to-back performance.
+- Different FFT/PSD screenshots belong to separate acquisitions; do not treat a single initial FFT as a complete spectral record for every angular point.
+- The within-band median PSD is **not** an independent TX-off noise floor; normalized dB means are descriptive, not an antenna calibration.
+- Original polar plot shifts the radial minimum to zero and may exaggerate the visualization.
 
-## Signal-on / signal-off reference
+## Improved future controlled experiment
 
-1. Capture multiple IQ buffers with the reference source **off**, with receiver settings unchanged, to estimate baseline band power.
-2. Capture multiple IQ buffers with the reference source **on** and verify that power rises in the intended band.
-3. Perform background subtraction in **linear power units**, then convert positive estimates to decibels. Negative or near-zero differences indicate inconclusive signal detection, not negative physical signal power.
-4. The current code's median within-band PSD is only an exploratory background proxy. It **must not** be treated as an independent signal-off measurement.
+Mount the Yagi on a fixed-height nonmetallic turntable; fix polarization, cable route and the operator's position. Run a physically interleaved **0° → 180° → 0° → 270° → 0°** sequence, collect multiple settled buffers per orientation, independently verify transmitter-on/off power, log timestamps, and repeat at a more open location if practical. Measure feed-point S11/VSWR at the reference frequency with a VNA.
 
-## Angular measurements
-
-1. Establish 0° and mark the antenna's forward-boresight direction clearly.
-2. Rotate the **receiving** Yagi at 0°, 30°, 60°, ... 330°, preserving height and the rotation pivot; do not treat 360° as an additional independent measurement.
-3. For each angle, acquire multiple settled IQ buffers, measure the same signal band, and record a mean/median plus variability; avoid touching cables while acquiring.
-4. Repeat sweeps in both rotational directions if feasible to assess drift and reproducibility. A 30° step is coarse relative to the supplied design's predicted beamwidth, so refine angles around the main lobe and nulls before estimating beamwidth.
-5. Export per-angle data and full settings to a CSV or equivalent. The current script does not yet export that CSV.
-
-## Interpretation and reporting
-
-- Normalize measured signal power to the maximum **only after** validating the source-on/off signal.
-- Use an explicitly labeled relative-dB polar axis with a consistent radial range, rather than mapping the minimum small fluctuation to radius zero.
-- Report peak orientation, observed front/back differences, beamwidth or uncertainty **only when the data support them**.
-- Compare measured findings against the supplied design's predictions (8.917 dBd estimated gain, 47.4° predicted horizontal beamwidth) without presenting those predictions as experimentally obtained values.
-- Include repeatability, room multipath, position uncertainty, polarization, drift, receiver saturation, leakage and noise-floor limitations.
-
-## Related files
-
-- [Antenna design](../hardware/antenna-design.md)
-- [DSP software](../src/yagi_sdr_characterization.py)
-- [Results status](../results/README.md)
+**Legal/electrical precautions:** 434 MHz test transmissions must be appropriately authorized and identified. Continuous unmodulated carrier alone does not identify a station. Verify 5-V UNO R4 vs 3.3-V CC1101 logic compatibility.

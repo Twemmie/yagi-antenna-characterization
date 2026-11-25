@@ -23,7 +23,7 @@ Let measured logarithmic integrated band power be P(i, θ) for sweep i. Define t
 
 For each angle: n = number of available runs, sample mean of R, sample standard deviation of R (ddof=1), and median of R. Missing 330° in Sweep 1 remains missing, not estimated. Standard deviation here describes **between-run dispersion**, not instrument accuracy or a formal confidence interval. Arithmetic means of dB values are means of logarithmic ratios; they do not equal the logarithm of the arithmetic mean of linear received powers.
 
-See `yagi_five_sweeps_raw.csv`, `yagi_five_sweeps_relative_to_0deg.csv`, `yagi_sweep_summary.csv`, and `yagi_angle_statistics.csv`.
+See [raw values](../results/data/yagi_five_sweeps_raw.csv), [0°-referenced values](../results/data/yagi_five_sweeps_relative_to_0deg.csv), [sweep summary](../results/data/yagi_sweep_summary.csv), and [angle statistics](../results/data/yagi_angle_statistics.csv).
 
 ## 4. Full-sweep summary
 

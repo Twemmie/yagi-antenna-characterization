@@ -1,22 +1,18 @@
-# RF/DSP Theory Notes
+# RF/DSP theory notebook
 
-Six handwritten theory chapters supporting the six-element Yagi antenna characterization project. These are **learning notes**, not measured experimental results. All six handwritten theory chapters have been uploaded as PDFs. These are conceptual learning notes, not verified antenna measurement records.
+Six handwritten PDFs accompany this measurement project. **These are learning materials, not validated RF measurement results.**
 
-| Chapter | Document | Topics |
+| Chapter | PDF | Subject |
 |---|---|---|
-| 1 | `01-sampling-and-nyquist.pdf` | Sampling, Nyquist–Shannon, complex IQ, PlutoSDR sampling rate and RF bandwidth |
-| 2 | `02-frequency-downconversion.pdf` | Local oscillator, mixing, heterodyning, IQ baseband conversion |
-| 3 | `03-fourier-analysis.pdf` | DFT/FFT, frequency bins, resolution, spectral leakage, windowing, FFT magnitudes |
-| 4 | `04-power-spectral-density.pdf` | RMS and signal power, periodograms, Welch PSD, PSD integration, PlutoSDR examples |
-| 5 | `05-receiver-characteristics.pdf` | Gain, AGC, noise floor, SNR, dynamic range, receiver artifacts, uncertainty |
-| 6 | `06-yagi-antenna-theory.pdf` | Yagi-Uda structure, radiation patterns, gain, impedance, resonance, S11, VSWR, bandwidth |
+| 1 | [Sampling and Nyquist](01-sampling-and-nyquist.pdf) | Sample rate, complex I/Q, Nyquist |
+| 2 | [Downconversion](02-frequency-downconversion.pdf) | LO, mixing, complex baseband |
+| 3 | [Fourier analysis](03-fourier-analysis.pdf) | DFT/FFT, bins and spectral leakage |
+| 4 | [Power spectral density](04-power-spectral-density.pdf) | Welch PSD, integration and units |
+| 5 | [Receiver characteristics](05-receiver-characteristics.pdf) | Gain, noise and receiver effects |
+| 6 | [Yagi antenna theory](06-yagi-antenna-theory.pdf) | Element functions, patterns, impedance |
 
-**PDF upload status:** All six PDFs listed above are present in this repository.
+**Known erratum:** A direct DFT should have complexity **O(N²)**, not O(N³), in Chapter 3. The original notes were retained rather than silently edited.
 
-## Notes and limitations
+Some duplicate-looking PDFs under `docs/theory/` were uploaded separately. Those copies are preserved until authorship and equivalence are reviewed, not discarded by assumption.
 
-- Values near **425 MHz** in the introductory SDR examples illustrate the initial software setup. The provided physical antenna design is for **440 MHz**.
-- Chapter 3 uses a direct DFT complexity statement that should read **O(N²)**, rather than **O(N³)**. The original handwriting has been retained instead of silently modified.
-- Code snippets in these learning notes are illustrative. The working PlutoSDR analysis and angular-sweep code is in [`../src/yagi_sdr_characterization.py`](../src/yagi_sdr_characterization.py).
-- Chapter 4's PSD methods have been exercised on captured IQ samples, but these initial software tests do not establish actual antenna directivity or calibrated received power.
-- Absolute antenna gain cannot be inferred from uncalibrated PlutoSDR relative power measurements.
+[Actual experimental findings](../analysis/Yagi_Consolidated_Statistical_Analysis.md)

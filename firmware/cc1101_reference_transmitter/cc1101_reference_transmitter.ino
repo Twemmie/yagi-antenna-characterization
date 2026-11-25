@@ -12,7 +12,7 @@ const float RF_FREQ = 434.0;   // MHz
 const int8_t RF_POWER = -10;  // dBm, requested output level
 
 // Keep disabled until RF setup and authorization are verified.
-const bool ENABLE_RF_TX = true;
+const bool ENABLE_RF_TX = false;
 
 // ===== CC1101 =====
 CC1101 radio = new Module(

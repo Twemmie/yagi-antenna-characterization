@@ -1,13 +1,19 @@
-# Experiments
+# Physical experiments — completed and proposed
 
-This folder documents repeatable physical measurements and distinguishes actual observations from software-only testing.
+**Date:** November 25, 2026. **Status:** Five indoor physical sweeps and transmitter reference tests completed; no calibrated free-space pattern established.
 
-- [Controlled angular sweep — protocol](controlled-angular-sweep.md): setup, fixed receiver settings, sample acquisition, noise reference, and data reporting checklist.
-- Physical Yagi build and VNA tuning context: [hardware documentation](../hardware/).
-- Current software-test analyzer: [`src/yagi_sdr_characterization.py`](../src/yagi_sdr_characterization.py).
+## Experiment inventory
 
-## Current status
+| Dataset | Coverage and interpretation |
+|---|---|
+| CC1101 transmitter verification | On/off spectral peaks and power contrast around the observed 433.921 MHz carrier |
+| Stationary receiver checks | Five-capture and sequential fixed-position tests, including some with the antenna pointing upward on a chair; these are NOT angular patterns |
+| Physical sweep 1 | 0°, 30°, … 300° (**11 measured angles; missing 330°**) |
+| Physical sweeps 2–5 | 0°, 30°, … 330° (**12 angles per run**) |
+| Additional half-sweeps | Two physical 0°–150° studies, preserved separately and **not averaged** with the five full sweeps |
 
-The Python FFT/PSD, band-power estimator, and interactive 12-position angular loop have run successfully. Initial polar plots are **software workflow demonstrations**, not validated Yagi patterns. VNA-assisted tuning and instrument photographs have been documented, but a complete set of calibrated, repeatable directional test data is still pending.
+**Total analyzed full-sweep data:** 59 actual angle-power observations, no invented values for Sweep 1 at 330°.
 
-Do not report predicted gain/beamwidth from the supplied design as measured values, or infer RF transmitter power from uncalibrated IQ values.
+See [measurement procedure](controlled-angular-sweep.md), [raw CSV](../results/data/yagi_five_sweeps_raw.csv), and [consolidated analysis](../analysis/Yagi_Consolidated_Statistical_Analysis.md).
+
+**Interpretation:** Initial 0°–150° readings are nearly constant within each sweep; rearward directions exhibit inconsistent minima and substantial run-to-run scatter. A handheld indoor environment, reflection, transmitter/receiver drift, and changing coax geometry are plausible influences. The data do not justify a validated beamwidth, gain, or free-space front-to-back ratio.

@@ -1,69 +1,91 @@
-# Six-Element Yagi Antenna Characterization
+# Six-Element Yagi Antenna — PlutoSDR Characterization
 
-An experimental RF and digital signal processing project studying a constructed six-element Yagi-Uda antenna with an **ADALM-Pluto SDR**, **Python**, and a **vector network analyzer (VNA)**.
+An experimental RF and digital signal processing project using a **constructed six-element tape-measure Yagi**, **ADALM-Pluto SDR**, and an **Arduino UNO R4 WiFi + CC1101 reference transmitter**.
 
-## Project overview
+![Constructed Yagi antenna](hardware/images/yagi-assembled-floor.jpg)
 
-The antenna was constructed from an existing **440 MHz design** (one reflector, one driven element, four directors) on an approximately **66 cm / 26 in boom**. The original antenna design was provided by another person; its design and predicted performance will be credited separately from the construction, measurement, and signal-processing work.
+> **Experiment status (November 25, 2026):** RF reception, FFT/Welch PSD analysis, and **five physical indoor angular sweeps** are complete. These are preliminary, **uncalibrated** received-power measurements, **not** a validated free-space radiation pattern or antenna-gain measurement.
 
-The project aims to characterize antenna impedance matching and the **relative directional response** using received IQ samples, frequency-domain analysis, and controlled measurements. **Design predictions are not experimental measurements.**
+## The RF measurement chain
 
-## Current progress
+```text
+Arduino UNO R4 WiFi → SPI → CC1101 (commanded 434.0 MHz) → TX antenna
+                                    over-the-air RF
+Six-element Yagi → coax/BNC-to-SMA → ADALM-Pluto SDR → USB → Python/Spyder
+                                                 IQ → FFT + Welch PSD
+                                                     ↓
+                                          433.87–433.97 MHz
+                                           band-power estimate
+                                                     ↓
+                                           directional sweeps
+                                                     ↓
+                                            statistical analysis
+```
 
-- [x] Constructed six-element Yagi using the provided element dimensions
-- [x] Tuned antenna and photographed VNA measurements
-- [x] Verified PlutoSDR connection and Python FFT spectrum visualization
-- [x] Implemented and tested Welch PSD estimation and uncalibrated band-power calculations
-- [x] Implemented and tested a 12-position angular-sweep workflow and preliminary polar plotting (software test only)
-- [ ] Verify reception of a known reference signal through the Yagi and record separate signal-on/signal-off measurements
-- [ ] Collect controlled angular measurements with a stable reference transmitter
-- [ ] Produce and analyze a validated relative radiation pattern
-- [ ] Publish final experimental results and limitations
+### Recorded hardware and processing configuration
 
-## Repository contents
+| Parameter | Experiment setting |
+|---|---|
+| Antenna | Six-element Yagi, original **440 MHz** supplied design, ~66 cm boom |
+| Reference transmitter | Arduino UNO R4 WiFi with RadioLib CC1101 |
+| Programmed transmitter frequency | **434.0 MHz** |
+| Observed PlutoSDR carrier | ~**433.921 MHz** (independent oscillator calibration not performed) |
+| Receiver LO | **434.2 MHz** |
+| PlutoSDR rate / bandwidth | ~**3 MSPS** / **2 MHz** |
+| Receiver gain | **20 dB**, manual |
+| IQ buffer size | **16,384 complex samples** |
+| Welch PSD | **2,048-sample segments**, complex two-sided |
+| Power integration | **433.87–433.97 MHz** (uncalibrated sample power) |
 
-- [`theory/`](theory/) — six uploaded PDF chapters of handwritten RF/DSP theory notes
-- [`hardware/`](hardware/) — supplied antenna design, attribution, uploaded construction images, and feed details
-- [`src/yagi_sdr_characterization.py`](src/yagi_sdr_characterization.py) — working PlutoSDR IQ capture, FFT, Welch PSD, band-power estimation, guided angular sweep, and preliminary polar plotting
-- [`experiments/`](experiments/) — controlled-test protocol, planned setup, and future verified measurements
-- [`results/`](results/) — planned numeric measurement tables, verified result plots, and instrument evidence
+## Five-sweep characterization
 
-## Equipment and environment
+**Five physical angular sweeps, 59 total orientation measurements:** Sweep 1 covers 0°–300° (missing 330°); Sweeps 2–5 cover 0°–330° in 30° increments. Two additional 0°–150° half-sweeps and multiple stationary/CC1101 ON/OFF checks are documented separately.
 
-- Six-element, tape-measure Yagi antenna
-- Coaxial BNC cable and BNC-to-SMA adapter connected to PlutoSDR receive input
-- ADALM-Pluto SDR
-- VNA used for impedance and matching assessment
-- Windows laptop, Spyder IDE, Python, NumPy, Matplotlib, and SciPy
+![Five physical Yagi sweeps, referenced to each sweep's 0° measurement](results/plots/yagi_five_sweeps_overlay.png)
 
-## Python analysis pipeline
+![Mean relative received power and across-sweep standard deviation](results/plots/yagi_mean_sd_by_angle.png)
 
-The current single-file Python implementation uses PyADI-IIO, NumPy, SciPy, and Matplotlib to:
+The section **0°–150° is almost flat within each run** (0.015–0.068 dB range), while **180°–330° varies substantially between runs**. At **270°**, the between-sweep sample standard deviation is **7.31 dB**. Deep attenuation occurs at different angles in different runs; this data does **not** establish a consistent radiation-pattern null, measured beamwidth, gain, or validated front-to-back ratio.
 
-1. Configure the PlutoSDR receiver and acquire complex IQ samples.
-2. Compute an FFT magnitude spectrum and Welch power spectral density.
-3. Integrate a selected frequency band to estimate uncalibrated received sample power, including a preliminary median-based background estimate.
-4. Prompt the operator at 30° increments, capture a fresh IQ buffer at each of 12 unique orientations (0°–330°), and store a band-power estimate.
-5. Normalize these measurements and generate a **software-test** polar visualization, reusing the 0° point at 360° to close the curve.
+The original polar plots use a radial shift that can visually exaggerate small differences. For quantitative interpretation, use the *0°-referenced Cartesian plots* and CSV values.
 
-The script saves FFT, PSD, and angular-sweep PNGs to `results/plots/` when run locally; these locally generated files are not necessarily committed to GitHub. These plot exports are not proof of physical antenna directivity. The angular-sweep workflow has been exercised, but a controlled, stable RF reference has **not** yet been used to validate its radiation pattern. The current polar plot shifts the relative-dB values to nonnegative radii for visualization, which can make small variations appear dramatic.
+## Project navigation
 
-The current script is designed for incremental experimentation in Spyder. See [`src/README.md`](src/README.md) for run instructions and [`experiments/controlled-angular-sweep.md`](experiments/controlled-angular-sweep.md) for the future controlled-test protocol. Receiver settings and the test band are hardcoded; measurement values are not yet exported to CSV, and the analysis steps have not yet been refactored into reusable functions. These are planned reproducibility and maintainability improvements, not completed features.
+| Folder | Contents |
+|---|---|
+| [`hardware/`](hardware/) | Construction, original design attribution, photographs and setup |
+| [`firmware/`](firmware/cc1101_reference_transmitter/) | Arduino CC1101 firmware, pinout and safety cautions |
+| [`src/`](src/) | PlutoSDR FFT/PSD/angle-acquisition Python source and archives |
+| [`experiments/`](experiments/) | Executed measurement protocol and controls |
+| [`results/`](results/) | Five-sweep CSVs and plotted evidence |
+| [`analysis/`](analysis/) | Consolidated statistical report and reproducible analysis code |
+| [`theory/`](theory/) | Six handwritten RF/DSP theory PDFs |
 
-## Experimental approach
+### Reproduce the statistical analysis
 
-1. Document the existing antenna construction and VNA tuning evidence.
-2. Verify reception with the antenna connected and establish a stable reference signal.
-3. Estimate relative received power using a controlled SDR configuration.
-4. Rotate the antenna through known angular increments and save observations.
-5. Plot the relative directional pattern and discuss beamwidth, front-to-back ratio, and limitations **only to the extent supported by measurements**.
+From the repository root:
 
-The receiver's initial **425 MHz** configuration and **424.2–424.4 MHz** integration band were software demonstrations, not the antenna's **440 MHz design frequency**. Final measurement frequencies will be recorded from the actual test setup.
+```bash
+python -m pip install -r requirements.txt
+python analysis/analyze_yagi.py
+```
 
-## Measurement limitations
+This reads [committed raw measurements](results/data/yagi_five_sweeps_raw.csv), regenerates summary CSVs in `results/data/` and plots in `results/plots/`. No SDR hardware is required to analyze the recorded data.
 
-Uncalibrated PlutoSDR sample magnitudes do not establish absolute power in dBm or absolute antenna gain. The within-band median PSD is only a preliminary background proxy, not an independently measured noise floor; positive background-subtracted power alone does not confirm an external transmission. Original VNA photographs can support qualitative observations, but values not reliably readable from the display will not be presented as precise measurements.
+To acquire **new physical measurements**, follow [the receiver documentation](src/README.md) and [measurement protocol](experiments/controlled-angular-sweep.md). The receiver script is interactive and requires a PlutoSDR.
+
+## What is and isn't demonstrated
+
+**Demonstrated:** Constructed antenna, detected reference carrier, IQ acquisition, FFT, Welch PSD integration, transmitter ON/OFF comparisons, repeated manual physical sweeps, statistical analysis and engineering documentation.
+
+**Not demonstrated:** calibrated dBm/dBi values, independent CC1101 frequency accuracy, absolute antenna gain, validated free-space radiation pattern, reliable null direction/beamwidth or independently verified S11 at the test frequency. The original 440 MHz design predicts **8.917 dBd** gain and **47.4°** horizontal beamwidth; these are supplied design-software predictions **not measured project results**.
+
+The experiment was indoors with handheld positioning, furniture, a nearby Christmas tree and potentially changing cable geometry; no specific object has been established as the cause of multipath.
+
+## Reproducibility and safety
+
+PlutoSDR IQ values are **uncalibrated sample units**, not RF watts/dBm; the in-band median PSD is not a separate transmitter-off noise measurement. The UNO R4 WiFi operates with **5-V I/O**, while CC1101 logic is **3.3-V**: verify level shifting and power connections. A continuous unmodulated carrier does not by itself provide amateur station identification; transmit only when authorized, supervised, and properly identified. The published sketch defaults to RF transmission disabled.
 
 ## Attribution
 
-The antenna geometry originated from a design supplied by another person. The final hardware documentation will identify the original designer and distinguish that contribution from this project's construction, tuning, DSP implementation, and experimental characterization.
+The original geometry/design sheet was supplied by **Travis through the UCF Amateur Radio Club**; underlying design authorship should be verified. The project's own contributions are construction, SDR/DSP implementation, radio integration, data collection, and statistical analysis.

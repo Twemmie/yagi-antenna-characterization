@@ -1,15 +1,14 @@
 # ============================================================
-# Yagi SDR Characterization - Spectrum, PSD, and Angular Sweep
+# 01 - PlutoSDR Spectrum and PSD Analyzer
 # ============================================================
 # Purpose:
 # Capture complex IQ samples from an ADALM-Pluto SDR and
-# analyze them with FFT, Welch PSD, and an interactive angular-sweep workflow.
+# analyze them using the FFT and Welch's PSD estimation.
 #
 # Outputs:
 # 1. Received RF spectrum (FFT magnitude)
 # 2. Power Spectral Density (Welch method)
-# 3. Uncalibrated band-power estimates and software-test angular plot
-# 4. PNG figures saved to results/plots/
+# 3. PNG figures saved to results/plots/
 #
 # Note:
 # Measurements use uncalibrated IQ sample values.
@@ -32,7 +31,7 @@ def windows_find_library(name):
         return "ucrtbase"
     return original_find_library(name)
 
-# Apply the Windows compatibility lookup override before importing pylibiio.
+# Restore the original library lookup after importing pylibiio.
 ctypes.util.find_library = windows_find_library
 
 import adi
@@ -57,9 +56,9 @@ print("PlutoSDR connection established!")
 # Set the IQ sampling rate to approximately 3 million samples/second
 sdr.sample_rate = int(3e6)
 
-# Set the receiver local oscillator (center frequency) to 425 MHz
-# This is our initial SDR test frequency, not the Yagi's 440 MHz design frequency
-sdr.rx_lo = int(425e6)
+# Set receiver LO to 434.2 MHz for the recorded CC1101 experiment
+# The Yagi's original design frequency was 440 MHz, not the observed RF carrier
+sdr.rx_lo = int(434.2e6)
 
 # Set the analog receiver bandwidth to 2 MHz
 sdr.rx_rf_bandwidth = int(2e6)
@@ -67,18 +66,57 @@ sdr.rx_rf_bandwidth = int(2e6)
 # Disable automatic gain control to maintain consistent receiver gain
 sdr.gain_control_mode_chan0 = "manual"
 
-# Apply 30 dB of receiver hardware gain
-sdr.rx_hardwaregain_chan0 = 30 
+# Apply 20 dB of receiver hardware gain
+sdr.rx_hardwaregain_chan0 = 20 
 
 # Acquire 16,384 complex IQ samples per receive buffer
 sdr.rx_buffer_size = 16384
+# %%
+# Fresh IQ Capture Verification
 
+sample_a = sdr.rx()
+sample_b = sdr.rx()
+
+identical = np.array_equal(sample_a, sample_b)
+
+print("Two IQ captures identical:", identical)
+print("Maximum sample difference:",np.max(np.abs(sample_a - sample_b)))
 # %% 
 # 2. IQ Sample Acquisition
 
 # Capture one buffer of complex baseband IQ samples
 # Each sample contain an in-phase (I) and quadrature (Q) component
 samples = sdr.rx()
+
+# Calculate the peak magnitude of the complex IQ samples
+peak_iq = np.max(np.abs(samples))
+
+# Calculate the RMS magnitude of the complex IQ samples
+rms_iq = np.sqrt(np.mean(np.abs(samples)**2))
+
+# Display the measured IQ amplitudes 
+print("Peak IQ magnitude:", peak_iq)
+print("RMS IQ magnitude:", rms_iq)
+
+# Check the minimum and maximum and in-phase sample values
+print("I range:", np.min(samples.real), "to", np.max(samples.real))
+print("Q range:", np.min(samples.imag), "to", np.max(samples.imag))
+
+# Count samples close to the observed I and Q magnitude limits.
+i_abs = np.abs(samples.real)
+q_abs = np.abs(samples.imag)
+
+# Find the maximum component magnitude in this capture.
+max_component = max(np.max(i_abs), np.max(q_abs))
+
+# Count samples at or above 95% of that maximum.
+near_peak_count = np.sum(
+    (i_abs >= 0.95 * max_component) |
+    (q_abs >= 0.95 * max_component)
+)
+
+print("Samples near observed peak:", near_peak_count)
+print("Total IQ samples:", len(samples))
 
 # %%
 # 3. Fast Fourier Transform (FFT)
@@ -217,8 +255,10 @@ plt.show()
 # 9. Received-Power Estimation
 
 # Define a temporary frequency band for testing.
-f_min = 424.2  # MHz
-f_max = 424.4  # MHz
+
+f_min = 433.87  # MHz
+
+f_max = 433.97  # MHz
 
 # Select PSD bins within the specified frequency interval
 band_mask = (psd_rf_freq >= f_min) & (psd_rf_freq <= f_max)
@@ -283,7 +323,7 @@ else:
 # 10. Yagi Antenna Angular Sweep
 
 # Define antenna rotation angles in degrees
-angles = np.arange(0, 361, 30)
+angles = np.arange(0, 360, 30)
 
 # Display the measurement angles
 print("Antenna angles:", angles)
@@ -292,11 +332,11 @@ print("Antenna angles:", angles)
 power_measurements = []
 
 # Display the number of planned measurement positions
-print("Total measurement positions:", len(angles[:-1]))
+print("Total measurement positions:", len(angles))
 print("Power measurements collected:", len(power_measurements))
 
 # Loop through each unique antenna orientation
-for angle in angles[:-1]:
+for angle in angles:
     print("Position Yagi at:", angle, "degrees")
 
     # Wait for the operator to position the antenna
@@ -340,7 +380,7 @@ for angle in angles[:-1]:
 # 11. Verify Angular Measurements
 
 # Verify the number of recorded angular measurements
-print("Total angles measured:", len(angles[:-1]))
+print("Total angles measured:", len(power_measurements))
 print("Power measurements stored:", len(power_measurements))
 
 # Display the collected power values
@@ -359,10 +399,13 @@ relative_power_db = power_array - np.max(power_array)
 print("Relative power measurements (dB):", relative_power_db)
 
 # %%
-# 13. Preliminary Angular Sweep Polar Visualization (Software Test)
+# 13. Polar Radiation Pattern Visualization
 
-# Convert antenna angles from degrees to radians
-angles_rad = np.deg2rad(angles)
+# Close the angle array at 360 degrees.
+angles_closed = np.append(angles, 360)
+
+# Convert the complete angle array to radians.
+angles_rad = np.deg2rad(angles_closed)
 
 # Repeat the first power measurment to close the polar plot
 relative_power_closed = np.append(relative_power_db, relative_power_db[0])
@@ -385,7 +428,7 @@ fig, ax = plt.subplots(figsize=(8,8), subplot_kw={"projection": "polar"})
 ax.plot(angles_rad, plot_radius, marker="o")
 
 # Add a descriptive title
-ax.set_title("Yagi Antenna Angular Sweep (Software Test)", pad=20)
+ax.set_title("Yagi Antenna — Indoor Angular Sweep", pad=20)
 
 # Set the maximum radial value
 ax.set_ylim(0, np.max(plot_radius))
@@ -405,9 +448,83 @@ polar_plot_path = output_dir / "angular_sweep_software_test.png"
 
 plt.savefig(polar_plot_path, dpi=300, bbox_inches="tight")
 
+# Save numbered results for this run before displaying the figure.
+sweep_number = 6  # Change to a fresh ID before the next test.
+plt.savefig(output_dir / f"yagi_sweep_{sweep_number}.png", dpi=300, bbox_inches="tight")
+results_data_dir = Path("results")
+results_data_dir.mkdir(parents=True, exist_ok=True)
+np.savetxt(
+    results_data_dir / f"yagi_sweep_{sweep_number}.csv",
+    np.column_stack((angles, power_measurements)),
+    delimiter=",",
+    header="angle_deg,received_power_db_uncalibrated",
+    comments=""
+)
+
 # Verify that the plot was saved successfully
 print("Polar plot saved:", polar_plot_path.exists())
 print("File location:", polar_plot_path.resolve())
 
 # Display the plot
 plt.show()
+
+# %% 
+# 14. CC1101 RF Signal Detection and Frequency Verification
+
+# Find the frequency of the strongest FFT component.
+peak_index = np.argmax(fft_db)
+
+# Display the frequency and magnitude of that component.
+print("Strongest FFT peak:", rf_freq[peak_index], "MHz")
+print("Peak magnitude:", round(fft_db[peak_index], 2), "dB")
+
+# Select the expected CC1101 frequency region.
+tx_mask = (rf_freq >= 433.85) & (rf_freq <= 434.05)
+
+# Find the strongest FFT bin within that region.
+tx_peak_index = np.argmax(fft_db[tx_mask])
+
+# Get the corresponding frequency and magnitude.
+tx_peak_freq = rf_freq[tx_mask][tx_peak_index]
+tx_peak_db = fft_db[tx_mask][tx_peak_index]
+
+print("CC1101-region peak:", tx_peak_freq, "MHz")
+print("CC1101-region magnitude:", round(tx_peak_db, 2), "dB")
+
+# %% 
+# 15. Stationary Received-Power Stability Test
+
+# Store five received-power measurements at 0 degrees
+stability_power_db = []
+
+for i in range(5):
+    # Acquire a new IQ buffer 
+    test_samples = sdr.rx()
+    
+    # Calculate and center the PSD
+    test_freq, test_psd = welch(test_samples, fs=sdr.sample_rate, nperseg=2048, return_onesided=False)
+    
+    test_psd_shift = np.fft.fftshift(test_psd)
+    
+    # Convert the test frequency bins to absolute RF frequencies (MHz).
+    test_rf_freq = (np.fft.fftshift(test_freq) + sdr.rx_lo) / 1e6
+
+     # Select the measurement band for this capture.
+    test_band_mask = (test_rf_freq >= f_min) & (test_rf_freq <= f_max)
+
+    # Integrate the PSD within the selected band.
+    test_power = np.sum(test_psd_shift[test_band_mask]) * delta_f
+    
+    # Store the logarithmic power measurment 
+    stability_power_db.append(10 * np.log10(test_power))
+    
+    print("Capture", i + 1, ":", round(stability_power_db[-1], 2), "dB")
+    
+# Calculate measurement statistics after all five captures.
+mean_power_db = np.mean(stability_power_db)
+std_power_db = np.std(stability_power_db, ddof=1)
+power_variation_db = np.ptp(stability_power_db)
+
+print("Mean power:", round(mean_power_db, 2), "dB")
+print("Standard deviation:", round(std_power_db, 3), "dB")
+print("Peak-to-peak variation:", round(power_variation_db, 2), "dB")

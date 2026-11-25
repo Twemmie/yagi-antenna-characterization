@@ -1,30 +1,27 @@
-# PlutoSDR DSP Analysis
+# Python receiver and DSP pipeline
 
-The working source file is [`yagi_sdr_characterization.py`](yagi_sdr_characterization.py), developed incrementally in Spyder for the six-element Yagi characterization project.
+**Recommended runnable script:** [`yagi_sdr_characterization.py`](yagi_sdr_characterization.py).
 
-## Implemented and locally tested
+It includes PlutoSDR connection, IQ diagnostics, 16,384-bin FFT, Welch PSD, 433.87–433.97 MHz power integration, interactive 30° physical sweeps, plots, reference-carrier detection, and five-capture stability measurements.
 
-- PlutoSDR USB-Ethernet connection and fixed manual receiver gain.
-- Complex IQ acquisition, FFT spectrum, and Welch power spectral density (PSD).
-- Selection of a frequency band and integration of the **linear** PSD to estimate uncalibrated squared-IQ-sample power.
-- Preliminary within-band median PSD/background calculations (exploratory, **not** a measured receiver-only noise reference).
-- Operator-guided 0°–330° angular sweep at 30° steps with new IQ captures.
-- Relative-dB normalization, a closed 360° polar software-test plot, and local PNG exports.
+## Reproducibility
 
-## Running the script
+From the **repository root** with PlutoSDR attached at `ip:192.168.2.1`:
 
-1. Install compatible Python packages listed in [`../requirements.txt`](../requirements.txt) in your chosen environment.
-2. Connect and verify your ADALM-Pluto SDR; adjust the hardcoded URI (`ip:192.168.2.1` is the working USB-Ethernet example).
-3. In Spyder, use the repository root as the working directory; the script creates `results/plots/` relative to the working directory.
-4. Run the script or appropriate `# %%` cells in order. The angular loop prompts for each orientation; it is **interactive** and is not a headless batch program.
-5. Check the plots and console diagnostics. The 425 MHz LO and 424.2–424.4 MHz integration band are **software-test settings**, not the 440 MHz Yagi's verified test frequency.
+```bash
+python -m pip install -r requirements.txt
+python src/yagi_sdr_characterization.py
+```
 
-The script uses an installation-specific Windows C-runtime lookup workaround before importing `adi`. Its necessity depends on the local Python and pylibiio versions; it is not a general requirement for all systems.
+Or run `# %%` cells in Spyder. The script **prompts for each angle** and should not be run unattended. Change the `sweep_number` in the plotting section before any new experiment; it saves a numbered `results/plots/yagi_sweep_N.png` and `results/yagi_sweep_N.csv`, along with FFT and PSD snapshots.
 
-## Limitations and next improvements
+**Files preserved:** [historical original script](archive/yagi_sdr_characterization_uploaded_2026-11-25.py) and [previous repository source](archive/yagi_sdr_characterization_legacy.py). The working script incorporates only minimal count/statistics/export fixes; it has not been revalidated on physical SDR hardware following cleanup.
 
-**No validated radiation pattern yet.** A controlled, stable RF reference transmitter, a true separate signal-off baseline, repeatable geometry, and documented receiver settings are required before interpreting angular variation as antenna directivity. See [controlled angular sweep procedure](../experiments/controlled-angular-sweep.md).
+### Cautions
 
-The current polar software-test plot shifts relative dB to nonnegative radii; this can exaggerate sub-dB variations. Initial plots and power figures have an arbitrary reference, **not dBm, dBi, or measured antenna gain**.
-
-Planned: centralize configuration, record angle/power/settings as CSV, repeat captures with uncertainty estimates, move common DSP operations into reusable functions, and add robust acquisition/invalid-power checks. These features are not claimed to exist yet.
+- IQ/FFT/PSD and band-power levels are **uncalibrated sample-based quantities**, not absolute power.
+- The in-band PSD median is only a crude background proxy, **not** an independent transmitter-OFF baseline.
+- A pair of nonidentical IQ captures does not prove that no stale data are queued.
+- The original polar chart shifts the minimum relative level to zero radius and can exaggerate small differences. For scientific interpretation use the [five-sweep overlay](../results/plots/yagi_five_sweeps_overlay.png).
+- The Windows C-runtime library lookup workaround is installation-specific.
+- Offline analysis runs independently with `python analysis/analyze_yagi.py`.
