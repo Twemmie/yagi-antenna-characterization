@@ -1,30 +1,80 @@
-# Measured results
+# Yagi characterization — results gallery
 
-This directory holds the **five physical indoor Yagi sweep datasets**, their CSV statistics and original experimental screenshots. Values are uncalibrated logarithmic received **sample power**, **not dBm/dBi**.
+**All five measured sweeps and the RF frequency-domain screenshots are linked here.** The recordings are preliminary **indoor, uncalibrated** received sample-power observations—not dBm/dBi or a validated free-space antenna pattern.
 
-## Consolidated figures
+## Sweep 1–5: individual plots
 
-![Five physical sweeps referenced to their own 0° reading](plots/yagi_five_sweeps_overlay.png)
+The five figures below use the original recorded angle-power data, each referenced to **its own 0° reading**. The original polar screenshots are listed separately. Sweep 1 **does not have a 330° sample**.
 
-![Angle-by-angle mean and between-sweep standard deviation](plots/yagi_mean_sd_by_angle.png)
+### Sweep 1 — 11 measured positions
 
-## Machine-readable results
+![Sweep 1 relative-power graph](plots/sweep_1_relative_power.svg)
 
-- [Raw values for all five sweeps](data/yagi_five_sweeps_raw.csv) — **59 measured orientation records**; Sweep 1 lacks 330°.
-- [Each sweep referenced to its 0° value](data/yagi_five_sweeps_relative_to_0deg.csv).
-- [Per-angle mean, median, count, SD and range](data/yagi_angle_statistics.csv).
-- [Per-sweep summary](data/yagi_sweep_summary.csv).
-- [Consolidated interpretation and limitations](../analysis/Yagi_Consolidated_Statistical_Analysis.md).
+[Open Sweep 1 plot](plots/sweep_1_relative_power.svg)
 
-## Original figure inventory
+### Sweep 2 — 12 measured positions
 
-| Figure set | Files |
+![Sweep 2 relative-power graph](plots/sweep_2_relative_power.svg)
+
+[Open Sweep 2 plot](plots/sweep_2_relative_power.svg)
+
+### Sweep 3 — 12 measured positions
+
+![Sweep 3 relative-power graph](plots/sweep_3_relative_power.svg)
+
+[Open Sweep 3 plot](plots/sweep_3_relative_power.svg)
+
+### Sweep 4 — 12 measured positions
+
+![Sweep 4 relative-power graph](plots/sweep_4_relative_power.svg)
+
+[Open Sweep 4 plot](plots/sweep_4_relative_power.svg)
+
+### Sweep 5 — 12 measured positions
+
+![Sweep 5 relative-power graph](plots/sweep_5_relative_power.svg)
+
+[Open Sweep 5 plot](plots/sweep_5_relative_power.svg)
+
+## Combined sweep comparisons
+
+![Five measured sweeps](plots/yagi_five_sweeps_overlay.png)
+
+![Mean ± between-run standard deviation](plots/yagi_mean_sd_by_angle.png)
+
+[All five sweeps, overlay](plots/yagi_five_sweeps_overlay.png) · [Mean ± standard deviation](plots/yagi_mean_sd_by_angle.png)
+
+## Frequency-domain results — MHz FFT and PSD
+
+The experimental receiver was set to an LO of **434.2 MHz**, with a reference carrier observed near **433.921 MHz**. FFT and Welch PSD screenshots in the uploads were recorded against absolute RF frequency in **MHz**; the level axis is **uncalibrated**, not dBm/Hz.
+
+| Screenshot set | Original evidence files |
 |---|---|
-| Sweep 1 polar chart | [image(20261125-211135).png](plots/image(20261125-211135).png) |
-| Sweep 2 polar chart | [image(20261125-212558).png](plots/image(20261125-212558).png) |
-| Reference transmitter FFT/PSD | [image(20261125-214907).png](plots/image(20261125-214907).png), [image(20261125-214909).png](plots/image(20261125-214909).png) |
-| Sweep 4 polar, FFT, PSD | [215417](plots/image(20261125-215417).png), [215426](plots/image(20261125-215426).png), [215430](plots/image(20261125-215430).png) |
-| Sweep 5 polar, FFT, PSD | [215802](plots/image(20261125-215802).png), [215805](plots/image(20261125-215805).png), [215837](plots/image(20261125-215837).png) |
-| First-versus-second comparison | [yagi_first_vs_second_sweep.png](plots/yagi_first_vs_second_sweep.png) |
+| Reference-transmitter FFT / MHz PSD | [Capture A](plots/image(20261125-214907).png) · [Capture B](plots/image(20261125-214909).png) |
+| Sweep 4 RF frequency / PSD figures | [Capture A](plots/image(20261125-215426).png) · [Capture B](plots/image(20261125-215430).png) |
+| Sweep 5 RF frequency / PSD figures | [Capture A](plots/image(20261125-215805).png) · [Capture B](plots/image(20261125-215837).png) |
 
-Not every run has an individually archived PSD/FFT or polar screenshot. The polar radius transformation can greatly amplify small relative-dB differences visually; use the numerical CSV and comparison charts for inference.
+These are original screenshots, **not** a complete saved FFT and PSD pair for every single sweep. The filenames remain unchanged so provenance is preserved.
+
+## Original physical-sweep polar screenshots
+
+| Sweep | Original figure |
+|---|---|
+| 1 | [Polar screenshot](plots/image(20261125-211135).png) |
+| 2 | [Polar screenshot](plots/image(20261125-212558).png) |
+| 3 | Individual polar screenshot **not present in current uploads**; new graph above comes from recorded CSV |
+| 4 | [Polar screenshot](plots/image(20261125-215417).png) |
+| 5 | [Polar screenshot](plots/image(20261125-215802).png) |
+
+**Note:** The original polar plots translate the radial minimum to zero, which can exaggerate small relative-power differences. The new Cartesian graphs above present the dB measurements without that distortion.
+
+## Original data and reproducible analysis
+
+- [59 recorded measurements from all five sweeps](data/yagi_five_sweeps_raw.csv)
+- [0° normalized sweep data](data/yagi_five_sweeps_relative_to_0deg.csv)
+- [Per-angle statistics](data/yagi_angle_statistics.csv)
+- [Per-sweep summary](data/yagi_sweep_summary.csv)
+- [Consolidated statistical report](../analysis/Yagi_Consolidated_Statistical_Analysis.md)
+- [Offline analysis script](../analysis/analyze_yagi.py)
+
+The 0°–150° measurements are unusually flat within individual runs, while results past 180° are inconsistent across runs. Avoid using these preliminary measurements to claim a calibrated Yagi null, front-to-back ratio, or gain.

@@ -37,6 +37,11 @@ Six-element Yagi → coax/BNC-to-SMA → ADALM-Pluto SDR → USB → Python/Spyd
 | Welch PSD | **2,048-sample segments**, complex two-sided |
 | Power integration | **433.87–433.97 MHz** (uncalibrated sample power) |
 
+
+## View the complete result gallery
+
+**[Open all five individual sweep graphs, the FFT/PSD MHz screenshots, original polar plots, and CSV files](results/README.md).**
+
 ## Five-sweep characterization
 
 **Five physical angular sweeps, 59 total orientation measurements:** Sweep 1 covers 0°–300° (missing 330°); Sweeps 2–5 cover 0°–330° in 30° increments. Two additional 0°–150° half-sweeps and multiple stationary/CC1101 ON/OFF checks are documented separately.
