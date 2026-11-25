@@ -6,7 +6,7 @@ This project characterizes a **six-element Yagi-Uda antenna** constructed using 
 
 The antenna geometry was **not independently designed as part of this characterization project**. The project's separate contributions include physical construction, VNA-assisted tuning, PlutoSDR-based signal processing, and experimental characterization.
 
-> **Design attribution:** The design sheet was supplied by **Travis (UCF Amateur Radio Club)**. The original designer/authorship of the design calculations should be verified before assigning design credit more specifically.
+> **Design attribution:** The design sheet was supplied by **Travis (KQ4VQC), President of the UCF Amateur Radio Club**. The original designer/authorship of the design calculations should be verified before assigning design credit more specifically.
 
 ## Design Specifications
 
