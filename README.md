@@ -42,6 +42,21 @@ Six-element Yagi → coax/BNC-to-SMA → ADALM-Pluto SDR → USB → Python/Spyd
 
 **[Open all five individual sweep graphs, the FFT/PSD MHz screenshots, original polar plots, and CSV files](results/README.md).**
 
+## Frequency-domain results — FFT and Welch PSD (MHz)
+
+These original PlutoSDR screenshots show frequency-domain measurements near the **434 MHz reference signal**. The frequency axis is in **MHz**; PSD and FFT magnitudes use **uncalibrated sample-power references**, not absolute dBm or dBm/Hz.
+
+**Reference transmitter — frequency-domain capture A**
+
+![Reference transmitter — frequency-domain capture A](results/plots/image(20261125-214907).png)
+
+**Reference transmitter — frequency-domain capture B**
+
+![Reference transmitter — frequency-domain capture B](results/plots/image(20261125-214909).png)
+
+
+The additional Sweep 4 and Sweep 5 captures are displayed in the [complete frequency-domain gallery](results/README.md#frequency-domain-results--mhz-fft-and-psd).
+
 ## Five-sweep characterization
 
 **Five physical angular sweeps, 59 total orientation measurements:** Sweep 1 covers 0°–300° (missing 330°); Sweeps 2–5 cover 0°–330° in 30° increments. Two additional 0°–150° half-sweeps and multiple stationary/CC1101 ON/OFF checks are documented separately.
