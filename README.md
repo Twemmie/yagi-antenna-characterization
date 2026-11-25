@@ -88,4 +88,4 @@ PlutoSDR IQ values are **uncalibrated sample units**, not RF watts/dBm; the in-b
 
 ## Attribution
 
-The original geometry/design sheet was supplied by **Travis through the UCF Amateur Radio Club**; underlying design authorship should be verified. The project's own contributions are construction, SDR/DSP implementation, radio integration, data collection, and statistical analysis.
+The original geometry/design sheet was supplied by **Travis (KQ4VQC), President of the UCF Amateur Radio Club**; underlying design authorship should be verified. The project's own contributions are construction, SDR/DSP implementation, radio integration, data collection, and statistical analysis.
