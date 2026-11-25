@@ -1,0 +1,524 @@
+# ============================================================
+# 01 - PlutoSDR Spectrum and PSD Analyzer
+# ============================================================
+# Purpose:
+# Capture complex IQ samples from an ADALM-Pluto SDR and
+# analyze them using the FFT and Welch's PSD estimation.
+#
+# Outputs:
+# 1. Received RF spectrum (FFT magnitude)
+# 2. Power Spectral Density (Welch method)
+# 3. PNG figures saved to results/plots/
+#
+# Note:
+# Measurements use uncalibrated IQ sample values.
+# Plotted magnitudes are not absolute RF power in dBm.
+# ============================================================
+
+
+# Windows compatibility workaround for the pylibiio library.
+# On this Python installation, find_library("c") returns None,
+# preventing the PlutoSDR interface library from importing.
+
+import ctypes.util
+
+# Preserve the original library lookup function.
+original_find_library = ctypes.util.find_library
+
+# Redirect requests for the C runtime to Windows' ucrtbase library.
+def windows_find_library(name):
+    if name == "c":
+        return "ucrtbase"
+    return original_find_library(name)
+
+# Restore the original library lookup after importing pylibiio.
+ctypes.util.find_library = windows_find_library
+
+import adi
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import welch
+from pathlib import Path
+# %%
+
+# Create the results folder if it does not already exist.
+output_dir = Path("results/plots")
+output_dir.mkdir(parents=True, exist_ok=True)
+
+# 1. PlutoSDR initialization and Receiver Configuration
+
+# Connect to the PlutoSDR using its USB Ethernet IP address
+sdr = adi.Pluto(uri="ip:192.168.2.1")
+
+
+print("PlutoSDR connection established!")
+
+# Set the IQ sampling rate to approximately 3 million samples/second
+sdr.sample_rate = int(3e6)
+
+# Set the receiver local oscillator (center frequency) to 425 MHz
+# This is our initial SDR test frequency, not the Yagi's 440 MHz design frequency
+sdr.rx_lo = int(434.2e6)
+
+# Set the analog receiver bandwidth to 2 MHz
+sdr.rx_rf_bandwidth = int(2e6)
+
+# Disable automatic gain control to maintain consistent receiver gain
+sdr.gain_control_mode_chan0 = "manual"
+
+# Apply 30 dB of receiver hardware gain
+sdr.rx_hardwaregain_chan0 = 20 
+
+# Acquire 16,384 complex IQ samples per receive buffer
+sdr.rx_buffer_size = 16384
+# %%
+# Fresh IQ Capture Verification
+
+sample_a = sdr.rx()
+sample_b = sdr.rx()
+
+identical = np.array_equal(sample_a, sample_b)
+
+print("Two IQ captures identical:", identical)
+print("Maximum sample difference:",np.max(np.abs(sample_a - sample_b)))
+# %% 
+# 2. IQ Sample Acquisition
+
+# Capture one buffer of complex baseband IQ samples
+# Each sample contain an in-phase (I) and quadrature (Q) component
+samples = sdr.rx()
+
+# Calculate the peak magnitude of the complex IQ samples
+peak_iq = np.max(np.abs(samples))
+
+# Calculate the RMS magnitude of the complex IQ samples
+rms_iq = np.sqrt(np.mean(np.abs(samples)**2))
+
+# Display the measured IQ amplitudes 
+print("Peak IQ magnitude:", peak_iq)
+print("RMS IQ magnitude:", rms_iq)
+
+# Check the minimum and maximum and in-phase sample values
+print("I range:", np.min(samples.real), "to", np.max(samples.real))
+print("Q range:", np.min(samples.imag), "to", np.max(samples.imag))
+
+# Count samples close to the observed I and Q magnitude limits.
+i_abs = np.abs(samples.real)
+q_abs = np.abs(samples.imag)
+
+# Find the maximum component magnitude in this capture.
+max_component = max(np.max(i_abs), np.max(q_abs))
+
+# Count samples at or above 95% of that maximum.
+near_peak_count = np.sum(
+    (i_abs >= 0.95 * max_component) |
+    (q_abs >= 0.95 * max_component)
+)
+
+print("Samples near observed peak:", near_peak_count)
+print("Total IQ samples:", len(samples))
+
+# %%
+# 3. Fast Fourier Transform (FFT)
+
+# Convert the received IQ samples from the time domain
+# into a complex frequency-domain representation
+fft_data = np.fft.fft(samples)
+
+# Shift the FFT so negative frequencies appear on the left,
+# zero frequency is centered, and positive frequencies are on the right
+fft_shifted = np.fft.fftshift(fft_data)
+
+# Generate the frequency associated with each FFT bin
+# d represents the sampling interval (seconds/sample)
+freq = np.fft.fftfreq(len(samples), d=1/sdr.sample_rate)
+
+# Shift the frequency bins to match the shifted FFT data. 
+freq_shifted = np.fft.fftshift(freq)
+
+# %%
+# 4. FFT Magnitude and Frequency Conversion 
+
+# Calculate FFT magnitude and normalize by a sample count
+# This is a simple amplitude scaling, not a calibrated power measurement
+fft_magnitude = np.abs(fft_shifted) / len(samples)
+
+# Convert the linear amplitude magnitude to decibels
+# A small constant prevents log10(0), which is undefined
+fft_db = 20 * np.log10(fft_magnitude + 1e-12)
+
+# Convert baseband frequency offsets into absolute RF frequencies
+# Divide by 1e6 to display the result in MHz
+rf_freq = (freq_shifted + sdr.rx_lo) / 1e6
+
+# %%
+ # 5. Welch Power Spectral Density (PSD) Estimation
+ 
+# Estimate power spectral density by averaging windowed segments.
+# Welch uses a Hann window and 50% overlap by default.
+psd_freq, psd = welch(
+    samples,
+    fs=sdr.sample_rate,       # Actual IQ sampling frequency (Hz)
+    nperseg=2048,             # 2048 samples per Welch segment
+    return_onesided=False    # Keep negative and positive IQ frequencies
+)
+
+# Shift the PSD and its frequency axis to center zero frequency
+psd_shift = np.fft.fftshift(psd)
+psd_freq_shifted = np.fft.fftshift(psd_freq)
+
+
+# Convert linear PSD into logarithmic units for visualization
+# PSD uses 10*log10 because it represents a power-related quantity.
+# The result is uncalibrated logarithmic sample-power density,
+# not absolute RF power in dBm/Hz.
+
+psd_db = 10 * np.log10(psd_shift + 1e-20)
+
+# Convert shifted PSD baseband frequencies into absolute RF frequencies (MHz)
+psd_rf_freq = (psd_freq_shifted + sdr.rx_lo) / 1e6
+
+# %%
+# 6. FFT Spectrum Visualization
+
+plt.figure(figsize=(10,5))
+
+plt.plot(rf_freq, fft_db)
+
+plt.xlabel("Frequency (MHz")
+plt.ylabel("FFT Magnitude (dB, arbitrary reference)")
+
+plt.title("PlutoSDR Received Spectrum")
+
+# Save the FFT spectrum for documentation.
+plt.grid(True)
+
+plt.savefig(output_dir / "received_spectrum.png", dpi=300, bbox_inches="tight")
+
+plt.show()
+
+# %%
+# 7. Receiver Configuration and Processing Diagnostics
+
+print("Sampling rate:", sdr.sample_rate / 1e6, "MSPS")
+print("Center frequency", sdr.rx_lo / 1e6, "MHz")
+print("RF bandwidth:", sdr.rx_rf_bandwidth / 1e6, "MHz")
+print("RX gain:", sdr.rx_hardwaregain_chan0, "dB")
+print("IQ buffer size:", sdr.rx_buffer_size, "samples")
+print("Number of IQ samples:", len(samples))
+print("FFT bins:", len(fft_shifted))
+print("First Frequency:", freq_shifted[0] / 1e6, "MHz")
+print("Center Frequency:", freq_shifted[len(freq_shifted)//2], "Hz")
+print("FFT magnitude bins:", len(fft_db))
+print("Maximum FFT magnitude:", round(np.max(fft_db), 2), "dB")
+print("PSD frequency bins:", len(psd_freq))
+print("PSD magnitude bins:", len(psd))
+print("PSD center frequency: ", psd_freq_shifted[len(psd_freq_shifted)//2], "Hz")
+print("PSD dB bins:", len(psd_db))
+print("Maximum PSD value:", round(np.max(psd_db), 2), "dB/Hz")
+print("First PSD RF frequency:", psd_rf_freq[0], "MHz")
+print("Center PSD RF frequency:", psd_rf_freq[len(psd_rf_freq)//2], "MHz")
+
+# %% 
+# 8. Welch PSD Spectrum Visualization
+
+# Create a new figure for the PSD plot
+plt.figure(figsize=(10,5))
+
+# Plot the PSD against the absolute RF frequency
+plt.plot(psd_rf_freq, psd_db)
+
+# Label the axes 
+plt.xlabel("Frequency (MHz)")
+plt.ylabel("PSD (dB, arbitrary sample-power/Hz reference)")
+
+# Add the graph title
+plt.title("PlutoSDR Welch Power Spectral Density")
+
+plt.grid(True)
+
+print("Axes in current figure:", len(plt.gcf().axes))
+
+# Save the Welch PSD plot to the results directory.
+plt.savefig("results/plots/power_spectral_density.png", dpi=300, bbox_inches="tight")
+
+# Verify the saved PSD image exists 
+plot_path = output_dir / "power_spectral_density.png"
+
+print("Plot saved:", plot_path.exists())
+print("File location:", plot_path.resolve())
+
+plt.show()
+                                
+
+# %%
+# 9. Received-Power Estimation
+
+# Define a temporary frequency band for testing.
+
+f_min = 433.87  # MHz
+
+f_max = 433.97  # MHz
+
+# Select PSD bins within the specified frequency interval
+band_mask = (psd_rf_freq >= f_min) & (psd_rf_freq <= f_max)
+
+# Extract the linear PSD values inside the selected frequency band
+band_psd = psd_shift[band_mask]
+
+# Count the number of selected frequency bins
+print("Selected PSD bins:", np.sum(band_mask))
+
+# Verify how many PSD values were extracted
+print("Selected PSD values:", len(band_psd))
+
+# Calulate the frequency spacing between adjacent PSD bins (Hz)
+delta_f = psd_freq_shifted[1] - psd_freq_shifted[0]
+
+# Verify the calculated frequency resolution
+print("PSD frequency-bin spacing:", delta_f, "Hz")
+
+# Integrate the linear PSD across the selected frequency band
+band_power = np.sum(band_psd) * delta_f
+
+# Display the estimated power in uncalibrated sample-power units
+print("Integrated band power:", band_power)
+
+# Convert linear band power to decibels (uncalibrated)
+band_power_db = 10 * np.log10(band_power)
+print("Integrated band power (dB):", round(band_power_db, 2))
+
+# Estimate the median noise-plus-signal PSD in the selected band
+noise_psd = np.median(band_psd)
+
+# Display the estimate in logarithmic units
+noise_psd_db = 10 * np.log10(noise_psd)
+
+print("Median PSD (dB/Hz):", round(noise_psd_db, 2))
+
+# Estimate background power across the selected PSD bins
+noise_power = noise_psd * len(band_psd) * delta_f
+
+# Convert the estimated background power to decibels
+noise_power_db = 10 * np.log10(noise_power)
+
+print("Estimated background power (dB):", round(noise_power_db, 2))
+
+# Subtract the estimated background from total band power
+signal_power = band_power - noise_power
+
+# Check whether a positive signal-power estimate reamains
+print("Background-corrected power:", signal_power)
+print("Positive signal estimate:", signal_power > 0)
+
+# Convert positive background-corrected power to decibels 
+if signal_power > 0:
+    signal_power_db = 10 * np.log10(signal_power)
+    print("Corrected signal estimate (dB):", round(signal_power_db, 2))
+else:
+    print("No positive signal-power estimate")
+    
+
+# %%
+# 10. Yagi Antenna Angular Sweep
+
+# Define antenna rotation angles in degrees
+angles = np.arange(0, 360, 30)
+
+# Display the measurement angles
+print("Antenna angles:", angles)
+
+# Create an empty list to store power measurements
+power_measurements = []
+
+# Display the number of planned measurement positions
+print("Total measurement positions:", len(angles))
+print("Power measurements collected:", len(power_measurements))
+
+# Loop through each unique antenna orientation
+for angle in angles:
+    print("Position Yagi at:", angle, "degrees")
+
+    # Wait for the operator to position the antenna
+    input("Press Enter when the Yagi is positioned...")
+
+    # Capture a fresh IQ buffer at the current antenna orientation
+    angle_samples = sdr.rx()
+    print("IQ samples captured:", len(angle_samples))
+
+    # Calculate the PSD from the current angle's IQ samples
+    angle_freq, angle_psd = welch(
+        angle_samples,
+        fs=sdr.sample_rate,
+        nperseg=2048,
+        return_onesided=False
+    )
+
+    # Shift the PSD so that 0 Hz is in the center
+    angle_psd_shift = np.fft.fftshift(angle_psd)
+
+    print("Angle:", angle, "| PSD bins:", len(angle_psd_shift))
+
+    # Extract PSD values within the selected frequency band
+    angle_band_psd = angle_psd_shift[band_mask]
+
+    # Integrate the PSD to estimate received power
+    angle_power = np.sum(angle_band_psd) * delta_f
+
+    # Convert the power estimate into decibels
+    angle_power_db = 10 * np.log10(angle_power)
+
+    # Store the power measurement for this antenna orientation
+    power_measurements.append(angle_power_db)
+
+    # Debug: Check whether each measurement is being stored
+    print("Stored angle:", angle)
+    print("Measurements so far:", len(power_measurements))
+    print("Received power:", round(angle_power_db, 2), "dB")
+
+# %%
+# 11. Verify Angular Measurements
+
+# Verify the number of recorded angular measurements
+print("Total angles measured:", len(angles[:-1]))
+print("Power measurements stored:", len(power_measurements))
+
+# Display the collected power values
+print("Power measurements (dB):", power_measurements)
+
+# %%
+# 12. Normalize Angular Power Measurements
+
+# Convert the power measurements into a NumPy array
+power_array = np.array(power_measurements)
+
+# Normalize each measurement to the strongest received power
+relative_power_db = power_array - np.max(power_array)
+
+# Display the normalized values
+print("Relative power measurements (dB):", relative_power_db)
+
+# %%
+# 13. Polar Radiation Pattern Visualization
+
+# Close the angle array at 360 degrees.
+angles_closed = np.append(angles, 360)
+
+# Convert the complete angle array to radians.
+angles_rad = np.deg2rad(angles_closed)
+
+# Repeat the first power measurment to close the polar plot
+relative_power_closed = np.append(relative_power_db, relative_power_db[0])
+
+# Verify the arrays have matching lengths
+print("Angular positions:", len(angles_rad))
+print("Power Values:", len(relative_power_closed))
+
+# Shift the relative power values so all polar radii are positive.
+plot_radius = relative_power_closed - np.min(relative_power_closed)
+
+# Check the shifted values.
+print("Minimum relative power:", np.min(relative_power_closed), "dB")
+print("Plot radius values:", plot_radius)
+
+# Create a polar plot for the angular sweep
+fig, ax = plt.subplots(figsize=(8,8), subplot_kw={"projection": "polar"})
+
+# Plot relative power against antenna orientation
+ax.plot(angles_rad, plot_radius, marker="o")
+
+# Add a descriptive title
+ax.set_title("Yagi Antenna — Indoor Angular Sweep", pad=20)
+
+# Set the maximum radial value
+ax.set_ylim(0, np.max(plot_radius))
+
+# Display radial labels as relative power in dB
+radial_ticks = np.linspace(0, np.max(plot_radius), 5)
+
+ax.set_yticks(radial_ticks)
+
+ax.set_yticklabels(
+    [f"{value + np.min(relative_power_closed):.2f} dB"
+     for value in radial_ticks]
+)
+
+# Save the angular sweep plot to the results directory
+polar_plot_path = output_dir / "angular_sweep_software_test.png"
+
+plt.savefig(polar_plot_path, dpi=300, bbox_inches="tight")
+
+# Verify that the plot was saved successfully
+print("Polar plot saved:", polar_plot_path.exists())
+print("File location:", polar_plot_path.resolve())
+
+# Display the plot
+plt.show()
+
+# %% 
+# 14. CC101 RF Signal Detection and Frequency Verification
+
+# Find the frequency of the strongest FFT component.
+peak_index = np.argmax(fft_db)
+
+# Display the frequency and magnitude of that component.
+print("Strongest FFT peak:", rf_freq[peak_index], "MHz")
+print("Peak magnitude:", round(fft_db[peak_index], 2), "dB")
+
+# Select the expected CC1101 frequency region.
+tx_mask = (rf_freq >= 433.85) & (rf_freq <= 434.05)
+
+# Find the strongest FFT bin within that region.
+tx_peak_index = np.argmax(fft_db[tx_mask])
+
+# Get the corresponding frequency and magnitude.
+tx_peak_freq = rf_freq[tx_mask][tx_peak_index]
+tx_peak_db = fft_db[tx_mask][tx_peak_index]
+
+print("CC1101-region peak:", tx_peak_freq, "MHz")
+print("CC1101-region magnitude:", round(tx_peak_db, 2), "dB")
+
+# %% 
+# 15. Stationary Received-Power Stability Test
+
+# Store five received-power measurements at 0 degrees
+stability_power_db = []
+
+for i in range(5):
+    # Acquire a new IQ buffer 
+    test_samples = sdr.rx()
+    
+    # Calculate and center the PSD
+    test_freq, test_psd = welch(test_samples, fs=sdr.sample_rate, nperseg=2048, return_onesided=False)
+    
+    test_psd_shift = np.fft.fftshift(test_psd)
+    
+    # Convert the test frequency bins to absolute RF frequencies (MHz).
+    test_rf_freq = (np.fft.fftshift(test_freq) + sdr.rx_lo) / 1e6
+
+     # Select the measurement band for this capture.
+    test_band_mask = (test_rf_freq >= f_min) & (test_rf_freq <= f_max)
+
+    # Integrate the PSD within the selected band.
+    test_power = np.sum(test_psd_shift[test_band_mask]) * delta_f
+    
+    # Store the logarithmic power measurment 
+    stability_power_db.append(10 * np.log10(test_power))
+    
+    print("Capture", i + 1, ":", round(stability_power_db[-1], 2), "dB")
+    
+    # Calculate measurement statistics after all five captures.
+    mean_power_db = np.mean(stability_power_db)
+    std_power_db = np.std(stability_power_db, ddof=1)
+    power_variation_db = np.ptp(stability_power_db)
+
+    print("Mean power:", round(mean_power_db, 2), "dB")
+    print("Standard deviation:", round(std_power_db, 3), "dB")
+    print("Peak-to-peak variation:", round(power_variation_db, 2), "dB")
+    # %%
+# Experiment identification
+
+sweep_number = 3  # Change to 4, then 5
+plt.savefig("results/plots/yagi_sweep_{sweep_number}.png",dpi=300,bbox_inches="tight")
+np.savetxt(f"results/yagi_sweep_{sweep_number}.csv", np.column_stack((angles, power_measurements)), delimiter=",", header="angle_deg,received_power_db", comments=""
+           )
