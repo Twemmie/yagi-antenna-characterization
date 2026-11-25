@@ -19,7 +19,9 @@ The [`photos/`](photos/) folder preserves additional Arduino/CC1101 jumper wirin
 
 ## VNA matching and impedance measurement photographs
 
-The two network-analyzer screenshots were uploaded separately and are preserved at their original filenames:
+The repository includes photographed VNA traces and Smith-chart measurements. The additional user-supplied photos `IMG_9321(1).jpeg` and `IMG_9315(1).jpeg` were reviewed separately; the repository already contains an `IMG_9321.JPG` image, but the exact uploaded `IMG_9315(1).jpeg` file is not yet present. Keep the supplied source images rather than treating different photos as duplicate measurements.
+
+Existing VNA evidence includes:
 
 ![VNA multi-trace display showing frequency-dependent antenna response](images/IMG_9317.JPG)
 
@@ -28,6 +30,8 @@ The two network-analyzer screenshots were uploaded separately and are preserved 
 ![VNA Smith-chart and response detail](images/IMG_9318.JPG)
 
 *Figure — Additional VNA display photographed during antenna matching checks. This is evidence that network-analyzer inspection was performed, not proof of a particular calibrated S11 minimum or measured antenna gain.*
+
+[Additional VNA photo already in the repository](images/IMG_9321.JPG). The extra `IMG_9315(1).jpeg` remains to be uploaded if a complete photo record is desired.
 
 **Measurement interpretation:** The screen photographs show antenna impedance/matching characterization work, but they do not independently establish a precise S11, return-loss, VSWR, feed impedance or resonance frequency without legible marker readouts, instrument settings/calibration, and preferably exported VNA data (such as Touchstone `.s1p`). The antenna's supplied **440 MHz design frequency** must be distinguished from the CC1101 reference experiment near **433.92 MHz**. No gain or beamwidth measurement is implied by a VNA impedance plot.
 
