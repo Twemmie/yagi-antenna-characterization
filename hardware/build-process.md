@@ -71,4 +71,4 @@ The initial working software spectrum analyzer used a **425 MHz center frequency
 
 ## Design attribution
 
-The original design sheet was supplied by **Travis through the UCF Amateur Radio Club**. See [antenna-design.md](antenna-design.md) for the design specifications, documented software warnings, and attribution caveat.
+The original design sheet was supplied by **Travis (KQ4VQC), President of the UCF Amateur Radio Club**. See [antenna-design.md](antenna-design.md) for the design specifications, documented software warnings, and attribution caveat.
