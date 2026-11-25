@@ -46,15 +46,42 @@ The five figures below use the original recorded angle-power data, each referenc
 
 ## Frequency-domain results — MHz FFT and PSD
 
-The experimental receiver was set to an LO of **434.2 MHz**, with a reference carrier observed near **433.921 MHz**. FFT and Welch PSD screenshots in the uploads were recorded against absolute RF frequency in **MHz**; the level axis is **uncalibrated**, not dBm/Hz.
+The experimental receiver had a **434.2 MHz LO**, with a reference signal observed near **433.921 MHz**. Below are the **original spectrum and PSD screenshots embedded directly** rather than linked only by filename. RF frequency is labeled in **MHz**; plotted magnitudes are uncalibrated, **not dBm or dBm/Hz**.
 
-| Screenshot set | Original evidence files |
-|---|---|
-| Reference-transmitter FFT / MHz PSD | [Capture A](plots/image(20261125-214907).png) · [Capture B](plots/image(20261125-214909).png) |
-| Sweep 4 RF frequency / PSD figures | [Capture A](plots/image(20261125-215426).png) · [Capture B](plots/image(20261125-215430).png) |
-| Sweep 5 RF frequency / PSD figures | [Capture A](plots/image(20261125-215805).png) · [Capture B](plots/image(20261125-215837).png) |
+### Reference transmitter — FFT / PSD captures
 
-These are original screenshots, **not** a complete saved FFT and PSD pair for every single sweep. The filenames remain unchanged so provenance is preserved.
+**Reference transmitter — frequency-domain capture A**
+
+![Reference transmitter — frequency-domain capture A](plots/image(20261125-214907).png)
+
+**Reference transmitter — frequency-domain capture B**
+
+![Reference transmitter — frequency-domain capture B](plots/image(20261125-214909).png)
+
+
+### Sweep 4 — recorded frequency-domain captures
+
+**Sweep 4 — frequency-domain capture A**
+
+![Sweep 4 — frequency-domain capture A](plots/image(20261125-215426).png)
+
+**Sweep 4 — frequency-domain capture B**
+
+![Sweep 4 — frequency-domain capture B](plots/image(20261125-215430).png)
+
+
+### Sweep 5 — recorded frequency-domain captures
+
+**Sweep 5 — frequency-domain capture A**
+
+![Sweep 5 — frequency-domain capture A](plots/image(20261125-215805).png)
+
+**Sweep 5 — frequency-domain capture B**
+
+![Sweep 5 — frequency-domain capture B](plots/image(20261125-215837).png)
+
+
+**Provenance:** These six files are unchanged screenshots uploaded from the experiments. They do not constitute a complete FFT-and-PSD pair for every sweep; do not infer missing acquisitions from the pictures.
 
 ## Original physical-sweep polar screenshots
 
